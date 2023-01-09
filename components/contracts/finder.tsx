@@ -1,7 +1,3 @@
-/* eslint-disable react/react-in-jsx-scope -- Unaware of jsxImportSource */
-/** @jsxImportSource @emotion/react */
-import { jsx, css } from "@emotion/react";
-
 import { Divider, Typography } from "@mui/material";
 import { useState } from "react";
 import { AddressLookup } from "./address_lookup";
@@ -27,6 +23,36 @@ const fetchContractDetails = async (address: string) => {
   return functionsAndEvents;
 };
 
+const NestedContractSelectableList: React.FC<{
+  items: any[];
+  title: string;
+  toggleParent(name: string): void;
+  selected: Record<string, Record<string, boolean> | null>;
+  toggleChild(parentName: string, childName: string): void;
+}> = ({ items, title, toggleParent, selected, toggleChild }) => (
+  <>
+    <Typography color="primary" variant="h5">
+      {title}
+    </Typography>
+    <SelectableList
+      onSelect={(item) => {
+        toggleParent(item.name);
+      }}
+      isChecked={(item) => !!selected[item.name]}
+      items={items}
+      collapsible={(parentItem) => (
+        <SelectableList
+          items={parentItem.inputs}
+          onSelect={(childItem) => toggleChild(parentItem.name, childItem.name)}
+          isChecked={(childItem) =>
+            !!selected[parentItem.name]?.[childItem.name]
+          }
+        />
+      )}
+    />
+  </>
+);
+
 export const Finder: React.FC = () => {
   const [address, setAddress] = useState<string>("");
   const [functionsAndEvents, setFunctionsAndEvents] = useState<any[]>([]);
@@ -51,7 +77,10 @@ export const Finder: React.FC = () => {
   const toggleChild = (parentName: string, childName: string) => {
     setSelected({
       ...selected,
-      [parentName]: { ...selected[parentName], [childName]: true },
+      [parentName]: {
+        ...selected[parentName],
+        [childName]: !selected[parentName]?.[childName],
+      },
     });
   };
 
@@ -72,53 +101,23 @@ export const Finder: React.FC = () => {
       <Divider sx={{ m: 1 }} />
 
       {events.length > 0 && (
-        <>
-          <Typography color="primary" variant="h5">
-            Events
-          </Typography>
-          <SelectableList
-            onSelect={(item) => {
-              toggleParent(item.name);
-            }}
-            isChecked={(item) => !!selected[item.name]}
-            items={events}
-            collapsible={(parentItem) => (
-              <SelectableList
-                items={parentItem.inputs}
-                onSelect={(childItem) =>
-                  toggleChild(parentItem.name, childItem.name)
-                }
-                isChecked={(childItem) =>
-                  !!selected[parentItem.name]?.[childItem.name]
-                }
-              />
-            )}
-          />
-        </>
+        <NestedContractSelectableList
+          items={events}
+          title="Events"
+          toggleParent={toggleParent}
+          selected={selected}
+          toggleChild={toggleChild}
+        />
       )}
 
       {functions.length > 0 && (
-        <>
-          <Typography color="primary" variant="h5">
-            Functions
-          </Typography>
-          <SelectableList
-            onSelect={(item) => toggleParent(item.name)}
-            isChecked={(item) => !!selected[item.name]}
-            items={functions}
-            collapsible={(parentItem) => (
-              <SelectableList
-                items={parentItem.inputs}
-                onSelect={(childItem) =>
-                  toggleChild(parentItem.name, childItem.name)
-                }
-                isChecked={(childItem) =>
-                  !!selected[parentItem.name]?.[childItem.name]
-                }
-              />
-            )}
-          />
-        </>
+        <NestedContractSelectableList
+          items={functions}
+          title="Functions"
+          toggleParent={toggleParent}
+          selected={selected}
+          toggleChild={toggleChild}
+        />
       )}
     </>
   );
