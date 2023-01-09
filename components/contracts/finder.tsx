@@ -7,9 +7,11 @@ import { useState } from "react";
 import { AddressLookup } from "./address_lookup";
 import { SelectableList } from "./selectable_list";
 
-const makeEmptySelectedObject = (functions: Array<{ name: string }>) =>
+const makeEmptySelectedObject = (
+  functions: Array<{ name: string }>
+): Record<string, Record<string, boolean> | null> =>
   functions.reduce((acc: any, item: any) => {
-    acc[item.name] = false;
+    acc[item.name] = null;
     return acc;
   }, {});
 
@@ -28,7 +30,9 @@ const fetchContractDetails = async (address: string) => {
 export const Finder: React.FC = () => {
   const [address, setAddress] = useState<string>("");
   const [functionsAndEvents, setFunctionsAndEvents] = useState<any[]>([]);
-  const [selected, setSelected] = useState<Record<string, boolean>>({});
+  const [selected, setSelected] = useState<
+    Record<string, Record<string, boolean> | null>
+  >({});
 
   const getContractDetails = async () => {
     const functionsAndEvents = await fetchContractDetails(address);
@@ -36,8 +40,19 @@ export const Finder: React.FC = () => {
     setSelected(makeEmptySelectedObject(functionsAndEvents));
   };
 
-  const select = (name: string) => {
-    setSelected({ ...selected, [name]: !selected[name] });
+  const toggleParent = (name: string) => {
+    if (selected[name]) {
+      setSelected({ ...selected, [name]: null });
+    } else {
+      setSelected({ ...selected, [name]: {} });
+    }
+  };
+
+  const toggleChild = (parentName: string, childName: string) => {
+    setSelected({
+      ...selected,
+      [parentName]: { ...selected[parentName], [childName]: true },
+    });
   };
 
   const functions = functionsAndEvents.filter(
@@ -62,9 +77,22 @@ export const Finder: React.FC = () => {
             Events
           </Typography>
           <SelectableList
-            onSelect={(item) => { select(item.name) }}
-            isChecked={(item) => selected[item.name]}
+            onSelect={(item) => {
+              toggleParent(item.name);
+            }}
+            isChecked={(item) => !!selected[item.name]}
             items={events}
+            collapsible={(parentItem) => (
+              <SelectableList
+                items={parentItem.inputs}
+                onSelect={(childItem) =>
+                  toggleChild(parentItem.name, childItem.name)
+                }
+                isChecked={(childItem) =>
+                  !!selected[parentItem.name]?.[childItem.name]
+                }
+              />
+            )}
           />
         </>
       )}
@@ -75,9 +103,20 @@ export const Finder: React.FC = () => {
             Functions
           </Typography>
           <SelectableList
-            onSelect={(item) => select(item.name)}
-            isChecked={(item) => selected[item.name]}
+            onSelect={(item) => toggleParent(item.name)}
+            isChecked={(item) => !!selected[item.name]}
             items={functions}
+            collapsible={(parentItem) => (
+              <SelectableList
+                items={parentItem.inputs}
+                onSelect={(childItem) =>
+                  toggleChild(parentItem.name, childItem.name)
+                }
+                isChecked={(childItem) =>
+                  !!selected[parentItem.name]?.[childItem.name]
+                }
+              />
+            )}
           />
         </>
       )}
