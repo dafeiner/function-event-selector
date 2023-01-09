@@ -1,5 +1,6 @@
-import { Divider, Typography } from "@mui/material";
+import { Divider, Link, ListItemText, Typography } from "@mui/material";
 import { useState } from "react";
+import { etherScanAddressURL } from "../formatters/etherscan";
 import { AddressLookup } from "./address_lookup";
 import { SelectableList } from "./selectable_list";
 
@@ -23,6 +24,16 @@ const fetchContractDetails = async (address: string) => {
   return functionsAndEvents;
 };
 
+const combineInputsAndOutputs = (field: any) => {
+  const { inputs, outputs } = field;
+  const annotatedOutputs =
+    outputs?.map((output: any) => ({
+      ...output,
+      name: `Return Value (${output.type})`,
+    })) || [];
+  return [...inputs, ...annotatedOutputs];
+};
+
 const NestedContractSelectableList: React.FC<{
   items: any[];
   title: string;
@@ -31,24 +42,25 @@ const NestedContractSelectableList: React.FC<{
   toggleChild(parentName: string, childName: string): void;
 }> = ({ items, title, toggleParent, selected, toggleChild }) => (
   <>
-    <Typography color="primary" variant="h5">
-      {title}
-    </Typography>
     <SelectableList
+      title={<strong>{title}</strong>}
       onSelect={(item) => {
         toggleParent(item.name);
       }}
       isChecked={(item) => !!selected[item.name]}
       items={items}
-      collapsible={(parentItem) => (
-        <SelectableList
-          items={parentItem.inputs}
-          onSelect={(childItem) => toggleChild(parentItem.name, childItem.name)}
-          isChecked={(childItem) =>
-            !!selected[parentItem.name]?.[childItem.name]
-          }
-        />
-      )}
+      collapsible={({ name, inputs, outputs }) => {
+        return (
+          <>
+            <SelectableList
+              title={<strong> Fields</strong>}
+              items={combineInputsAndOutputs({ inputs, outputs })}
+              onSelect={(childItem) => toggleChild(name, childItem.name)}
+              isChecked={(childItem) => !!selected[name]?.[childItem.name]}
+            />
+          </>
+        );
+      }}
     />
   </>
 );
@@ -98,7 +110,22 @@ export const Finder: React.FC = () => {
         setAddress={setAddress}
         onSubmit={getContractDetails}
       />
+
       <Divider sx={{ m: 1 }} />
+
+      {functionsAndEvents.length > 0 && (
+        <Typography color="primary" variant="h6">
+          Select the events and fields you would like to track for contract{" "}
+          <Link
+            target={"_blank"}
+            rel="noopener noreferrer"
+            href={etherScanAddressURL(address)}
+          >
+            {address}
+          </Link>
+          .
+        </Typography>
+      )}
 
       {events.length > 0 && (
         <NestedContractSelectableList

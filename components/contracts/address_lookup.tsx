@@ -4,6 +4,7 @@ import {
   FormLabel,
   Grid,
   TextField,
+  Typography,
 } from "@mui/material";
 
 export const AddressLookup = ({
@@ -16,10 +17,10 @@ export const AddressLookup = ({
   onSubmit(): void;
 }) => (
   <Box>
-    <FormLabel color="primary" htmlFor="contractAddress">
+    <Typography color="primary" variant="h6">
       Enter a verified contract address to track any of its functions:{" "}
-    </FormLabel>
-    <Grid columnGap={"1rem"} container={true}>
+    </Typography>
+    <Grid sx={{ m: 1 }} columnGap={"1rem"} container={true}>
       <TextField
         variant="outlined"
         name="contractAddress"
