@@ -32,7 +32,7 @@ export const SelectableList: React.FC<{
               disableRipple
               color="primary"
             />
-            <Box>{item.name}</Box>
+            <Box>{item.label || item.name}</Box>
           </ListItemButton>
         </ListItem>
         {collapsible && (

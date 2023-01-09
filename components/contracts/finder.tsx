@@ -2,7 +2,7 @@ import { Divider, Link, ListItemText, Typography } from "@mui/material";
 import { useState } from "react";
 import { etherScanAddressURL } from "../formatters/etherscan";
 import { AddressLookup } from "./address_lookup";
-import { SelectableList } from "./selectable_list";
+import { NestedContractSelectableList } from "./nested_contract_selectable_list";
 
 const makeEmptySelectedObject = (
   functions: Array<{ name: string }>
@@ -23,47 +23,6 @@ const fetchContractDetails = async (address: string) => {
 
   return functionsAndEvents;
 };
-
-const combineInputsAndOutputs = (field: any) => {
-  const { inputs, outputs } = field;
-  const annotatedOutputs =
-    outputs?.map((output: any) => ({
-      ...output,
-      name: `Return Value (${output.type})`,
-    })) || [];
-  return [...inputs, ...annotatedOutputs];
-};
-
-const NestedContractSelectableList: React.FC<{
-  items: any[];
-  title: string;
-  toggleParent(name: string): void;
-  selected: Record<string, Record<string, boolean> | null>;
-  toggleChild(parentName: string, childName: string): void;
-}> = ({ items, title, toggleParent, selected, toggleChild }) => (
-  <>
-    <SelectableList
-      title={<strong>{title}</strong>}
-      onSelect={(item) => {
-        toggleParent(item.name);
-      }}
-      isChecked={(item) => !!selected[item.name]}
-      items={items}
-      collapsible={({ name, inputs, outputs }) => {
-        return (
-          <>
-            <SelectableList
-              title={<strong> Fields</strong>}
-              items={combineInputsAndOutputs({ inputs, outputs })}
-              onSelect={(childItem) => toggleChild(name, childItem.name)}
-              isChecked={(childItem) => !!selected[name]?.[childItem.name]}
-            />
-          </>
-        );
-      }}
-    />
-  </>
-);
 
 export const Finder: React.FC = () => {
   const [address, setAddress] = useState<string>("");
