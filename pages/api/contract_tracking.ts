@@ -30,12 +30,12 @@ const serializeTrackings = (req: ContractTrackingRequest) => {
       type,
       attributionName,
     }) => ({
-      user_address: userAddressField,
-      value_transfer: valueTransferField,
+      userAddressField: userAddressField,
+      valueTransferField: valueTransferField,
       fields,
       event: name,
       type,
-      attribution_name: attributionName,
+      attributionName: attributionName,
     })
   );
 };

@@ -43,7 +43,7 @@ export const NestedContractSelectableList: React.FC<{
         return (
           <>
             <SelectableList
-              title={<strong> Fields</strong>}
+              title={<Typography fontWeight="bold" color="primary">Fields</Typography>}
               items={combineInputsAndOutputs({ inputs, outputs })}
               onSelect={(childItem) => toggleChild(name, childItem.name)}
               isChecked={(childItem) => !!selected[name]?.[childItem.name]}

@@ -14,12 +14,16 @@ model Contract {
   id                Int                @id @default(autoincrement())
   address           String             @unique
   ContractTrackings ContractTracking[]
+
+  @@map("contracts")
 }
 
 model User {
   id               Int                @id @default(autoincrement())
   address          String             @unique
   AttributionEvent AttributionEvent[]
+
+  @@map("users")
 }
 
 model ContractTracking {
@@ -27,20 +31,24 @@ model ContractTracking {
   contract         Contract           @relation(fields: [contractId], references: [id])
   event            String
   type             String
-  attributionName  String
-  user_address     String
-  value_transfer   Decimal
+  attributionName  String @map("attribution_name")
+  userAddressField     String @map("user_address_field")
+  valueTransferField   Decimal @map("value_transfer_field")
   fields           String[]
-  contractId       Int
+  contractId       Int @map("contract_id")
   AttributionEvent AttributionEvent[]
+
+  @@map("contract_trackings")
 }
 
 model AttributionEvent {
   id                 Int              @id @default(autoincrement())
   user               User             @relation(fields: [userId], references: [id])
   contractTracking   ContractTracking @relation(fields: [contractTrackingId], references: [id])
-  contractTrackingId Int
-  userId             Int
+  contractTrackingId Int @map("contract_tracking_id")
+  userId             Int @map("user_id")
   timestamp          DateTime
   metadata           Json
+
+  @@map("attribution_events")
 }
