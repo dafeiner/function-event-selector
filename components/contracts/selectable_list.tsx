@@ -6,7 +6,6 @@ import {
   ListItem,
   ListItemButton,
   ListItemText,
-  ListProps,
 } from "@mui/material";
 
 import { Fragment } from "react";

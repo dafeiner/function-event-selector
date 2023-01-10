@@ -12,7 +12,7 @@ interface ContractTrackingRequest extends NextApiRequest {
     contractTrackings: Array<{
       name: string;
       type: string;
-      attributionName: string;
+      attributionEventName: string;
       userAddressField: string;
       valueTransferField: string;
       fields: string[];
@@ -28,14 +28,14 @@ const serializeTrackings = (req: ContractTrackingRequest) => {
       fields,
       name,
       type,
-      attributionName,
+      attributionEventName,
     }) => ({
       userAddressField: userAddressField,
       valueTransferField: valueTransferField,
       fields,
       event: name,
       type,
-      attributionName: attributionName,
+      attributionName: attributionEventName,
     })
   );
 };

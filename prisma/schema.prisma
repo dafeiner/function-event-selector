@@ -27,16 +27,16 @@ model User {
 }
 
 model ContractTracking {
-  id               Int                @id @default(autoincrement())
-  contract         Contract           @relation(fields: [contractId], references: [id])
-  event            String
-  type             String
-  attributionName  String @map("attribution_name")
-  userAddressField     String @map("user_address_field")
-  valueTransferField   Decimal @map("value_transfer_field")
-  fields           String[]
-  contractId       Int @map("contract_id")
-  AttributionEvent AttributionEvent[]
+  id                 Int                @id @default(autoincrement())
+  contract           Contract           @relation(fields: [contractId], references: [id])
+  event              String
+  type               String
+  attributionName    String             @map("attribution_name")
+  userAddressField   String             @map("user_address_field")
+  valueTransferField String             @map("value_transfer_field")
+  fields             String[]
+  contractId         Int                @map("contract_id")
+  AttributionEvent   AttributionEvent[]
 
   @@map("contract_trackings")
 }
@@ -45,8 +45,8 @@ model AttributionEvent {
   id                 Int              @id @default(autoincrement())
   user               User             @relation(fields: [userId], references: [id])
   contractTracking   ContractTracking @relation(fields: [contractTrackingId], references: [id])
-  contractTrackingId Int @map("contract_tracking_id")
-  userId             Int @map("user_id")
+  contractTrackingId Int              @map("contract_tracking_id")
+  userId             Int              @map("user_id")
   timestamp          DateTime
   metadata           Json
 
