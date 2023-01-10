@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Contract {
+  id                Int                @id @default(autoincrement())
+  address           String             @unique
+  ContractTrackings ContractTracking[]
+}
+
+model User {
+  id               Int                @id @default(autoincrement())
+  address          String             @unique
+  AttributionEvent AttributionEvent[]
+}
+
+model ContractTracking {
+  id               Int                @id @default(autoincrement())
+  contract         Contract           @relation(fields: [contractId], references: [id])
+  event            String
+  type             String
+  attributionName  String
+  user_address     String
+  value_transfer   Decimal
+  fields           String[]
+  contractId       Int
+  AttributionEvent AttributionEvent[]
+}
+
+model AttributionEvent {
+  id                 Int              @id @default(autoincrement())
+  user               User             @relation(fields: [userId], references: [id])
+  contractTracking   ContractTracking @relation(fields: [contractTrackingId], references: [id])
+  contractTrackingId Int
+  userId             Int
+  timestamp          DateTime
+  metadata           Json
+}
