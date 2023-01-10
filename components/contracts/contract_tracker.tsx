@@ -4,6 +4,7 @@ import { useState } from "react";
 import { etherScanAddressURL } from "../formatters/etherscan";
 import { AddressLookup } from "./address_lookup";
 import { NestedContractSelectableList } from "./nested_contract_selectable_list";
+import { Contract, ContractTracking } from "@prisma/client";
 
 type ContractTrackingMetadata = {
   fields: Record<string, boolean>;
@@ -25,6 +26,34 @@ const makeEmptySelectedObject = (
     return acc;
   }, {});
 
+const hydrateSelectedObject = (
+  selected: ContractTrackingState,
+  data: { contract: Contract & { ContractTrackings: ContractTracking[] } }
+) => {
+  const contractTrackings = data.contract.ContractTrackings;
+  contractTrackings.forEach((contractTracking) => {
+    const {
+      event,
+      type,
+      attributionName,
+      userAddressField,
+      valueTransferField,
+    } = contractTracking;
+    selected[event] = {
+      type,
+      attributionEventName: attributionName,
+      userAddressField,
+      valueTransferField,
+      fields: contractTracking.fields.reduce((acc: any, item: any) => {
+        acc[item] = true;
+        return acc;
+      }, {}),
+    };
+  });
+
+  return selected;
+};
+
 const fetchContractDetails = async (address: string) => {
   const response = await fetch(
     `http://localhost:3000/api/contract_abi?address=${address}`
@@ -35,6 +64,14 @@ const fetchContractDetails = async (address: string) => {
   );
 
   return functionsAndEvents;
+};
+
+const fetchContractTracking = async (address: string) => {
+  const response = await fetch(
+    `http://localhost:3000/api/contract_trackings?address=${address}`
+  );
+  const data = await response.json();
+  return data;
 };
 
 const serializeRequestData = (
@@ -71,8 +108,12 @@ export const ContractTracker: React.FC = () => {
 
   const getContractDetails = async () => {
     const functionsAndEvents = await fetchContractDetails(address);
+    const existingContrackTracking = await fetchContractTracking(address);
+    const emptySelectedObject = makeEmptySelectedObject(functionsAndEvents);
     setFunctionsAndEvents(functionsAndEvents);
-    setSelected(makeEmptySelectedObject(functionsAndEvents));
+    setSelected(
+      hydrateSelectedObject(emptySelectedObject, existingContrackTracking)
+    );
   };
 
   const saveContractTrackings = async () => {

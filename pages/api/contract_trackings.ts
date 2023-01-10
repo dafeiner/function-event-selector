@@ -1,9 +1,11 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
+import { Contract, ContractTracking } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { PrismaClient } from "../../prisma/client";
 
 type Data = {
-  contractId: number;
+  contractId?: number;
+  contract?: Contract & { ContractTrackings: ContractTracking[] } | null;
 };
 
 interface ContractTrackingRequest extends NextApiRequest {
@@ -17,6 +19,9 @@ interface ContractTrackingRequest extends NextApiRequest {
       valueTransferField: string;
       fields: string[];
     }>;
+  };
+  query: {
+    address: string;
   };
 }
 
@@ -55,5 +60,16 @@ export default async function handler(
     });
 
     res.status(200).json({ contractId: contract.id });
+  } else if (req.method === "GET") {
+    const contract = await PrismaClient.contract.findUnique({
+      where: {
+        address: req.query.address,
+      },
+      include: {
+        ContractTrackings: true,
+      },
+    });
+
+    res.status(200).json({ contract: contract });
   }
 }
