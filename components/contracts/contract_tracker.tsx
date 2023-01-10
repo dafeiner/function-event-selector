@@ -24,7 +24,7 @@ const fetchContractDetails = async (address: string) => {
   return functionsAndEvents;
 };
 
-export const Finder: React.FC = () => {
+export const ContractTracker: React.FC = () => {
   const [address, setAddress] = useState<string>("");
   const [functionsAndEvents, setFunctionsAndEvents] = useState<any[]>([]);
   const [selected, setSelected] = useState<

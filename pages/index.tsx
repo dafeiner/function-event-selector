@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { Finder } from "../components/contracts/finder";
+import { ContractTracker } from "../components/contracts/contract_tracker";
 import { Container } from "@mui/material";
 
 export default function Home() {
@@ -9,7 +9,7 @@ export default function Home() {
         <title>Contract Tracker</title>
       </Head>
       <Container>
-        <Finder />
+        <ContractTracker />
       </Container>
     </>
   );
