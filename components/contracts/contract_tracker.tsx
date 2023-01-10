@@ -1,100 +1,23 @@
-import { Button, Divider, Grid, Link, Typography } from "@mui/material";
+import {
+  Button,
+  CircularProgress,
+  Divider,
+  Grid,
+  Link,
+  Typography,
+} from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import { useState } from "react";
 import { etherScanAddressURL } from "../formatters/etherscan";
 import { AddressLookup } from "./address_lookup";
 import { NestedContractSelectableList } from "./nested_contract_selectable_list";
-import { Contract, ContractTracking } from "@prisma/client";
-
-type ContractTrackingMetadata = {
-  id?: number;
-  fields: Record<string, boolean>;
-  type?: string;
-  attributionEventName?: string;
-  userAddressField?: string;
-  valueTransferField?: string;
-};
-export type ContractTrackingState = Record<
-  string,
-  ContractTrackingMetadata | null
->;
-
-const makeEmptySelectedObject = (
-  functions: Array<{ name: string }>
-): ContractTrackingState =>
-  functions.reduce((acc: any, item: any) => {
-    acc[item.name] = null;
-    return acc;
-  }, {});
-
-const hydrateSelectedObject = (
-  selected: ContractTrackingState,
-  data: { contract: Contract & { ContractTrackings: ContractTracking[] } }
-) => {
-  const contractTrackings = data.contract.ContractTrackings;
-  contractTrackings.forEach((contractTracking) => {
-    const {
-      id,
-      event,
-      type,
-      attributionName,
-      userAddressField,
-      valueTransferField,
-    } = contractTracking;
-    selected[event] = {
-      id,
-      type,
-      attributionEventName: attributionName,
-      userAddressField,
-      valueTransferField,
-      fields: contractTracking.fields.reduce((acc: any, item: any) => {
-        acc[item] = true;
-        return acc;
-      }, {}),
-    };
-  });
-
-  return selected;
-};
-
-const fetchContractDetails = async (address: string) => {
-  const response = await fetch(
-    `http://localhost:3000/api/contract_abi?address=${address}`
-  );
-  const data = await response.json();
-  const functionsAndEvents = data.abi.filter(
-    (item: any) => item.type === "function" || item.type === "event"
-  );
-
-  return functionsAndEvents;
-};
-
-const fetchContractTracking = async (address: string) => {
-  const response = await fetch(
-    `http://localhost:3000/api/contract_trackings?address=${address}`
-  );
-  const data = await response.json();
-  return data;
-};
-
-const serializeRequestData = (
-  contractAddress: string,
-  trackingData: ContractTrackingState
-) => {
-  const contractTrackings = Object.entries(trackingData)
-    .filter(([_, metadata]) => !!metadata)
-    .map(([name, metadata]) => {
-      return {
-        name,
-        ...metadata,
-        fields: Object.keys(metadata?.fields!),
-      };
-    });
-  return {
-    contractAddress,
-    contractTrackings,
-  };
-};
+import { ContractTrackingState } from "./types";
+import { fetchContractDetails } from "./api/contract_abi";
+import {
+  fetchContractTracking,
+  hydrateSelectedObject,
+  saveContractTracking,
+} from "./api/contract_trackings";
 
 export const ContractTracker: React.FC = () => {
   const [address, setAddress] = useState<string>("");
@@ -110,31 +33,27 @@ export const ContractTracker: React.FC = () => {
   );
 
   const getContractDetails = async () => {
-    const functionsAndEvents = await fetchContractDetails(address);
-    const existingContrackTracking = await fetchContractTracking(address);
-    const emptySelectedObject = makeEmptySelectedObject(functionsAndEvents);
-    setFunctionsAndEvents(functionsAndEvents);
-    setSelected(
-      hydrateSelectedObject(emptySelectedObject, existingContrackTracking)
-    );
-  };
-
-  const saveContractTrackings = async () => {
     try {
       setIsSaving(true);
-      const data = serializeRequestData(address, selected);
-      const response = await fetch(
-        "http://localhost:3000/api/contract_trackings",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        }
+      const functionsAndEvents = await fetchContractDetails(address);
+      const existingContractTracking = await fetchContractTracking(address);
+      const initialSelectedObject = hydrateSelectedObject(
+        functionsAndEvents,
+        existingContractTracking
       );
-      const responseData = await response.json();
-      console.log(responseData);
+      setFunctionsAndEvents(functionsAndEvents);
+      setSelected(initialSelectedObject);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const save = async () => {
+    try {
+      setIsSaving(true);
+      await saveContractTracking(address, selected);
     } catch (e) {
       console.error(e);
     } finally {
@@ -182,6 +101,7 @@ export const ContractTracker: React.FC = () => {
   return (
     <>
       <AddressLookup
+        loading={isSaving}
         address={address}
         setAddress={setAddress}
         onSubmit={getContractDetails}
@@ -228,9 +148,10 @@ export const ContractTracker: React.FC = () => {
       {functionsAndEvents.length > 0 && (
         <Grid sx={{ m: 1, height: 56 }} columnGap={"1rem"} container={true}>
           <LoadingButton
+            loadingIndicator={<CircularProgress />}
             loading={isSaving}
             color="primary"
-            onClick={() => saveContractTrackings()}
+            onClick={save}
             variant="contained"
           >
             Save

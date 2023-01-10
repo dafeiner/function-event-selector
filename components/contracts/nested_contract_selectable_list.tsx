@@ -1,7 +1,7 @@
 import { Box, Typography } from "@mui/material";
-import { ContractTrackingState } from "./contract_tracker";
 import { SelectableList } from "./selectable_list";
 import { TrackingMetadataFields } from "./tracking_metadata_fields";
+import { ContractTrackingState } from "./types";
 
 const annotate = (item: any, label: React.ReactNode) => ({
   ...item,

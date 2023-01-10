@@ -1,6 +1,8 @@
+import { LoadingButton } from "@mui/lab";
 import {
   Box,
   Button,
+  CircularProgress,
   FormLabel,
   Grid,
   TextField,
@@ -11,8 +13,10 @@ export const AddressLookup = ({
   address,
   setAddress,
   onSubmit,
+  loading,
 }: {
   address: string;
+  loading: boolean;
   setAddress(address: string): void;
   onSubmit(): void;
 }) => (
@@ -29,9 +33,15 @@ export const AddressLookup = ({
         type="text"
         placeholder="0x123456..."
       />{" "}
-      <Button color="primary" onClick={onSubmit} variant="contained">
+      <LoadingButton
+        loading={loading}
+        loadingIndicator={<CircularProgress />}
+        color="primary"
+        onClick={onSubmit}
+        variant="contained"
+      >
         Go!
-      </Button>
+      </LoadingButton>
     </Grid>
   </Box>
 );
