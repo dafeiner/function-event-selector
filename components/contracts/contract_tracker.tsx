@@ -21,6 +21,7 @@ import {
 
 export const ContractTracker: React.FC = () => {
   const [address, setAddress] = useState<string>("");
+  const [displayAddress, setDisplayAddress] = useState<string>("");
   const [functionsAndEvents, setFunctionsAndEvents] = useState<any[]>([]);
   const [selected, setSelected] = useState<ContractTrackingState>({});
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -43,6 +44,7 @@ export const ContractTracker: React.FC = () => {
       );
       setFunctionsAndEvents(functionsAndEvents);
       setSelected(initialSelectedObject);
+      setDisplayAddress(address);
     } catch (e) {
       console.error(e);
     } finally {
@@ -117,9 +119,9 @@ export const ContractTracker: React.FC = () => {
           <Link
             target={"_blank"}
             rel="noopener noreferrer"
-            href={etherScanAddressURL(address)}
+            href={etherScanAddressURL(displayAddress)}
           >
-            {address}
+            {displayAddress}
           </Link>
           .
         </Typography>
