@@ -25,7 +25,7 @@ interface ContractTrackingRequest extends NextApiRequest {
   };
 }
 
-const serializeTrackings = (req: ContractTrackingRequest) => {
+const serializeTrackings = (req: ContractTrackingRequest, contractId: number) => {
   return req.body.contractTrackings.map(
     ({
       userAddressField,
@@ -35,6 +35,7 @@ const serializeTrackings = (req: ContractTrackingRequest) => {
       type,
       attributionEventName,
     }) => ({
+      contractId,
       userAddressField: userAddressField,
       valueTransferField: valueTransferField,
       fields,
@@ -50,14 +51,17 @@ export default async function handler(
   res: NextApiResponse<Data>
 ) {
   if (req.method === "POST") {
-    const contract = await PrismaClient.contract.create({
-      data: {
+    const contract = await PrismaClient.contract.upsert({
+      where: {
         address: req.body.contractAddress,
-        ContractTrackings: {
-          create: serializeTrackings(req),
-        },
       },
+      update: {},
+      create: { address: req.body.contractAddress },
     });
+
+    // HACK: This is a hack to delete all the contract tracking and recreate them instead of updating each contract tracking.
+    await PrismaClient.contractTracking.deleteMany({ where: { contractId: contract.id } });
+    await PrismaClient.contractTracking.createMany({ data: serializeTrackings(req, contract.id) });
 
     res.status(200).json({ contractId: contract.id });
   } else if (req.method === "GET") {

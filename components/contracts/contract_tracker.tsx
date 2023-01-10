@@ -7,6 +7,7 @@ import { NestedContractSelectableList } from "./nested_contract_selectable_list"
 import { Contract, ContractTracking } from "@prisma/client";
 
 type ContractTrackingMetadata = {
+  id?: number;
   fields: Record<string, boolean>;
   type?: string;
   attributionEventName?: string;
@@ -33,6 +34,7 @@ const hydrateSelectedObject = (
   const contractTrackings = data.contract.ContractTrackings;
   contractTrackings.forEach((contractTracking) => {
     const {
+      id,
       event,
       type,
       attributionName,
@@ -40,6 +42,7 @@ const hydrateSelectedObject = (
       valueTransferField,
     } = contractTracking;
     selected[event] = {
+      id,
       type,
       attributionEventName: attributionName,
       userAddressField,
