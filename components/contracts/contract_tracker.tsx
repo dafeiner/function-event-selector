@@ -101,6 +101,8 @@ export const ContractTracker: React.FC = () => {
   return (
     <>
       <AddressLookup
+        disableSave={functionsAndEvents.length === 0}
+        onSave={save}
         loading={isSaving}
         address={address}
         setAddress={setAddress}
@@ -143,20 +145,6 @@ export const ContractTracker: React.FC = () => {
           toggleChild={toggleChild}
           setMetadata={setFieldMetadata}
         />
-      )}
-
-      {functionsAndEvents.length > 0 && (
-        <Grid sx={{ m: 1, height: 56 }} columnGap={"1rem"} container={true}>
-          <LoadingButton
-            loadingIndicator={<CircularProgress />}
-            loading={isSaving}
-            color="primary"
-            onClick={save}
-            variant="contained"
-          >
-            Save
-          </LoadingButton>
-        </Grid>
       )}
     </>
   );
